@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.smartpips.traderscheme",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7F:0F:7D:68:9C:2A:44:8E:22:96:4D:45:C7:E1:92:DF:37:A6:DB:98:98:B4:4D:B9:EE:41:2B:A6:C9"
+      ]
+    }
+  }
+]

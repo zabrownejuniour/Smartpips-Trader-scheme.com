@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function() {
+        // 1. Filter out console errors from Vite dev server HMR websocket
+        var origConsoleError = console.error;
+        console.error = function() {
+          var args = Array.prototype.slice.call(arguments);
+          var msg = args.map(function(a) { return String((a && a.message) || a); }).join(' ');
+          if (msg.indexOf('WebSocket closed without opened') !== -1 || msg.indexOf('vite:ws') !== -1 || (msg.indexOf('[vite]') !== -1 && msg.indexOf('websocket') !== -1)) {
+            return;
+          }
+          origConsoleError.apply(console, args);
+        };
+
+        // 2. Intercept window errors and unhandled promise rejections
+        window.addEventListener('error', function(event) {
+          if (event.message && (event.message.indexOf('WebSocket') !== -1 || event.message.indexOf('vite') !== -1)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event.reason;
+          var msg = reason && (reason.message || String(reason));
+          if (msg && (msg.indexOf('WebSocket') !== -1 || msg.indexOf('vite') !== -1)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        }, true);
+
+        // 3. Graceful Vite HMR WebSocket Handler
+        if (typeof window !== 'undefined' && window.WebSocket) {
+          var OrigWebSocket = window.WebSocket;
+          var SafeWebSocket = function(url, protocols) {
+            var isHmr = (protocols === 'vite-hmr') ||
+                        (Array.isArray(protocols) && protocols.indexOf('vite-hmr') !== -1) ||
+                        (typeof url === 'string' && (url.indexOf('token=') !== -1 || url.indexOf('vite') !== -1));
+
+            if (isHmr) {
+              var listeners = {};
+              var mock = {
+                readyState: 1, // OPEN
+                OPEN: 1,
+                CLOSED: 3,
+                CLOSING: 2,
+                CONNECTING: 0,
+                url: url,
+                protocol: 'vite-hmr',
+                bufferedAmount: 0,
+                extensions: '',
+                binaryType: 'blob',
+                onopen: null,
+                onclose: null,
+                onerror: null,
+                onmessage: null,
+                addEventListener: function(type, fn) {
+                  listeners[type] = listeners[type] || [];
+                  listeners[type].push(fn);
+                  if (type === 'open') {
+                    setTimeout(function() {
+                      try {
+                        if (mock.onopen) mock.onopen({ type: 'open' });
+                        fn({ type: 'open' });
+                      } catch (e) {}
+                    }, 0);
+                  }
+                },
+                removeEventListener: function(type, fn) {
+                  if (!listeners[type]) return;
+                  listeners[type] = listeners[type].filter(function(cb) { return cb !== fn; });
+                },
+                dispatchEvent: function() { return true; },
+                send: function() {},
+                close: function() {
+                  mock.readyState = 3;
+                }
+              };
+              return mock;
+            }
+            return new OrigWebSocket(url, protocols);
+          };
+          SafeWebSocket.prototype = OrigWebSocket.prototype;
+          SafeWebSocket.CONNECTING = 0;
+          SafeWebSocket.OPEN = 1;
+          SafeWebSocket.CLOSING = 2;
+          SafeWebSocket.CLOSED = 3;
+          window.WebSocket = SafeWebSocket;
+        }
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smartpips Traderscheme.com - AI Forex Scanner & Trading Terminal</title>
+    <meta name="description" content="AI-powered forex chart scanner with actionable buy/sell signals, real-price demo trading, 7-day free trial management, and $5/month recurring subscription." />
+    <meta property="og:title" content="Smartpips Traderscheme.com - AI Forex Scanner & Trading Terminal" />
+    <meta property="og:description" content="AI-powered forex chart scanner with actionable buy/sell signals, real-price demo trading, 7-day free trial management, and $5/month recurring subscription." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0B0F19" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SmartPips" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

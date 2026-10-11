@@ -1,0 +1,6 @@
+{
+  "name": "ApexForex AI - Scanner & Trading Terminal",
+  "description": "AI-powered forex chart scanner with actionable buy/sell signals, real-price demo trading, 7-day free trial management, and $5/month recurring subscription.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
